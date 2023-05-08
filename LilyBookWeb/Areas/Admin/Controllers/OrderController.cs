@@ -45,67 +45,71 @@ namespace LilyBookWeb.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Details_PAY_NOW()
         {
-            OrderVM.OrderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == OrderVM.OrderHeader.Id, includeProperties: "ApplicationUser");
-            OrderVM.OrderDetail = _unitOfWork.OrderDetail.GetAll(u => u.OrderId == OrderVM.OrderHeader.Id, includeProperties: "Product");
+            return RedirectToAction("PaymentConfirmation", "Order", new { orderHeaderid = OrderVM.OrderHeader.Id });
 
-            //stripe settings 
-            var domain = "https://localhost:44300/";
-            var options = new SessionCreateOptions
-            {
-                PaymentMethodTypes = new List<string>
-                {
-                  "card",
-                },
-                LineItems = new List<SessionLineItemOptions>(),
-                Mode = "payment",
-                SuccessUrl = domain + $"admin/order/PaymentConfirmation?orderHeaderid={OrderVM.OrderHeader.Id}",
-                CancelUrl = domain + $"admin/order/details?orderId={OrderVM.OrderHeader.Id}",
-            };
+			////stripe settings 
+			//var domain = "https://localhost:44300/";
+			//var options = new SessionCreateOptions
+			//{
+			//    PaymentMethodTypes = new List<string>
+			//    {
+			//      "card",
+			//    },
+			//    LineItems = new List<SessionLineItemOptions>(),
+			//    Mode = "payment",
+			//    SuccessUrl = domain + $"admin/order/PaymentConfirmation?orderHeaderid={OrderVM.OrderHeader.Id}",
+			//    CancelUrl = domain + $"admin/order/details?orderId={OrderVM.OrderHeader.Id}",
+			//};
 
-            foreach (var item in OrderVM.OrderDetail)
-            {
+			//foreach (var item in OrderVM.OrderDetail)
+			//{
 
-                var sessionLineItem = new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmount = (long)(item.Price * 100),//20.00 -> 2000
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Product.Title
-                        },
+			//    var sessionLineItem = new SessionLineItemOptions
+			//    {
+			//        PriceData = new SessionLineItemPriceDataOptions
+			//        {
+			//            UnitAmount = (long)(item.Price * 100),//20.00 -> 2000
+			//            Currency = "usd",
+			//            ProductData = new SessionLineItemPriceDataProductDataOptions
+			//            {
+			//                Name = item.Product.Title
+			//            },
 
-                    },
-                    Quantity = item.Count,
-                };
-                options.LineItems.Add(sessionLineItem);
+			//        },
+			//        Quantity = item.Count,
+			//    };
+			//    options.LineItems.Add(sessionLineItem);
 
-            }
+			//}
 
-            var service = new SessionService();
-            Session session = service.Create(options);
-            _unitOfWork.OrderHeader.UpdateStripePaymentID(OrderVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
-            _unitOfWork.Save();
-            Response.Headers.Add("Location", session.Url);
-            return new StatusCodeResult(303);
-        }
+			//var service = new SessionService();
+			//Session session = service.Create(options);
+			//_unitOfWork.OrderHeader.UpdateStripePaymentID(OrderVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+			//_unitOfWork.Save();
+			//Response.Headers.Add("Location", session.Url);
+			//return new StatusCodeResult(303);
+		}
 
         public IActionResult PaymentConfirmation(int orderHeaderid)
         {
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == orderHeaderid);
-            if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
-            {
-                var service = new SessionService();
-                Session session = service.Get(orderHeader.SessionId);
-                //check the stripe status
-                if (session.PaymentStatus.ToLower() == "paid")
-                {
-                    _unitOfWork.OrderHeader.UpdateStatus(orderHeaderid, orderHeader.OrderStatus, SD.PaymentStatusApproved);
-                    _unitOfWork.Save();
-                }
-            }
-            return View(orderHeaderid);
+			OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == orderHeaderid);
+
+			//if (orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
+			//{
+			//    var service = new SessionService();
+			//    Session session = service.Get(orderHeader.SessionId);
+			//    //check the stripe status
+			//    if (session.PaymentStatus.ToLower() == "paid")
+			//    {
+			//        _unitOfWork.OrderHeader.UpdateStatus(orderHeaderid, orderHeader.OrderStatus, SD.PaymentStatusApproved);
+			//        _unitOfWork.Save();
+			//    }
+			//}
+
+			_unitOfWork.OrderHeader.UpdateStatus(orderHeaderid, orderHeader.OrderStatus, SD.PaymentStatusApproved);
+			_unitOfWork.Save();
+
+			return View(orderHeaderid);
         }
 
         [HttpPost]
