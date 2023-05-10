@@ -1,4 +1,4 @@
-
+﻿
 using LilyBook.DataAccess;
 using LilyBook.DataAccess.Repository;
 using LilyBook.DataAccess.Repository.IRepository;
@@ -22,17 +22,25 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
     builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
-builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddDefaultTokenProviders()
+
+
+builder.Services
+    .AddIdentity<IdentityUser,IdentityRole>()
+    .AddDefaultTokenProviders()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
-builder.Services.AddAuthentication().AddFacebook(options =>
-{
-    options.AppId = "533257571075733";
-    options.AppSecret = "cee28519a0b06e73c034c996885febbb";
-});
+
+//builder.Services.AddAuthentication().AddFacebook(options =>
+//{
+//    options.AppId = "533257571075733";
+//    options.AppSecret = "cee28519a0b06e73c034c996885febbb";
+//});
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = $"/Identity/Account/Login";
@@ -78,7 +86,7 @@ app.MapControllerRoute(
 
 app.Run();
 
-
+// khởi tạo dữ liệu ban đầu cho cơ sở dữ liệu
 void SeedDatabase()
 {
     using (var scope = app.Services.CreateScope())
@@ -86,4 +94,7 @@ void SeedDatabase()
         var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
         dbInitializer.Initialize();
     }
+	// Đối tượng IDbInitializer được sử dụng để thực hiện các hoạt động khởi tạo cơ sở dữ liệu
+    // như tạo các bảng,
+    // thêm dữ liệu ban đầu và cấu hình các quyền truy cập trong cơ sở dữ liệu.
 }

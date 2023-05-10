@@ -26,8 +26,8 @@ namespace LilyBook.DataAccess.DbInitializer
             _db = db;
         }
 
-
-        public void Initialize()
+		//  kiểm tra và áp dụng các bản cập nhật (migrations) nếu chưa được áp dụng
+		public void Initialize()
         {
             //migrations if they are not applied
             try
@@ -54,17 +54,17 @@ namespace LilyBook.DataAccess.DbInitializer
 
                 _userManager.CreateAsync(new ApplicationUser
                 {
-                    UserName = "admin@dotnetmastery.com",
-                    Email = "admin@dotnetmastery.com",
-                    Name = "Bhrugen Patel",
+                    UserName = "admin@lilybook.com",
+                    Email = "admin@lilybook.com",
+                    Name = "Dinh Luan",
                     PhoneNumber = "1112223333",
-                    StreetAddress = "test 123 Ave",
-                    State = "IL",
+                    StreetAddress = "123 Thanh Thai",
+                    State = "Quan 10",
                     PostalCode = "23422",
-                    City = "Chicago"
+                    City = "HCM"
                 }, "Admin123*").GetAwaiter().GetResult();
 
-                ApplicationUser user = _db.ApplicationUsers.FirstOrDefault(u => u.Email == "admin@dotnetmastery.com");
+                ApplicationUser user = _db.ApplicationUsers.FirstOrDefault(u => u.Email == "admin@lilybook.com");
 
                 _userManager.AddToRoleAsync(user, SD.Role_Admin).GetAwaiter().GetResult();
 
